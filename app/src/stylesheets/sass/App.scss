@@ -36,16 +36,8 @@
 
 /* spacing */
 
-.w-10 {
-  width: 10%;
-}
-
-.w-15 {
-  min-width: 15%;
-}
-
-.w-20 {
-  min-width: 20%;
+.sign-in-form, .sign-up-form {
+  min-width: 300px;
 }
 
 /* todo items */
@@ -58,9 +50,9 @@
   color: black !important;
 
   .todo-button {
-    background-color: #282c34;
-    border-color: #282c34;
-    color: #61dafb;
+    background-color: transparent;
+    border: none;
+    color: #282c34;
     display: inline-block !important;
   }
 }

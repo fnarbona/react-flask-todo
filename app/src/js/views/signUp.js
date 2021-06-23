@@ -1,10 +1,14 @@
 import {useState} from 'react';
+import {Redirect} from 'react-router-dom';
+import Fade from 'react-reveal/Fade';
 
 function SignUp() {
   return (
 	<div className="App-view">
-		<h1>Sign Up</h1>
-		<Form/>
+		<Fade>
+			<h1>Sign Up</h1>
+			<Form/>
+		</Fade>
 	</div>
   );
 }
@@ -13,7 +17,8 @@ function Form() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
-
+	const [auth, setAuth] = useState(false)
+	
 	const handleSubmit = (e) => {
 		e.preventDefault()
 
@@ -35,13 +40,18 @@ function Form() {
 				}
 			})
 			.then(res => res.json())
-			.then(data => console.log(data))
+			.then(data => {
+				console.log(data)
+				if (data.success === true) {
+					setAuth(true)
+				}
+			})
 			.catch(err => console.log(err))
 		}
 	}
 
 	return (
-		<div className="py-5 w-20">
+		<div className="py-5 sign-up-form">
 			<form onSubmit={handleSubmit}>
 				<div className="mb-3">
 					<label htmlFor="input-email" className="form-label">Email address</label>
@@ -59,6 +69,7 @@ function Form() {
 					<button className="btn btn-info btn-lg mx-1 w-100">Submit</button>
 				</div>
 			</form>
+			{auth ? <Redirect to="/sign_in"/> : null}
 		</div>
 	)
 }

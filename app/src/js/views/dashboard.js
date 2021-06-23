@@ -13,21 +13,6 @@ const TodoList = () => {
 	const [todos, setTodos] = useState([]);
 
 	useEffect(() => {
-		setTodos([
-			{
-				title: 'item 1',
-				text: 'this is a todo'
-			},
-			{
-				title: 'item 2',
-				text: 'this is a todo'
-			},
-			{
-				title: 'item 3',
-				text: 'this is a todo'
-			}
-		]);
-
 		fetch("http://localhost:4000/get_todos", {
 			method: "GET",
 			headers: {
@@ -40,11 +25,31 @@ const TodoList = () => {
 			console.log(data)
 		})
 		.catch(err => console.log(err))
+
+		return () => {
+			fetch("https://localhost:4000/set_todos", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer " + localStorage.getItem("token")
+				},
+				body: JSON.stringify({"todos": todos})
+			})
+			.then(res => res.json())
+			.then(data => console.log(data.success))
+			.catch(err => console.log(err))
+		}
 	}, []);
 
 	const addTodo = (e) => {
 		if (e.key === 'Enter') {
-			setTodos(todos.concat({title: e.target.value, text: ""}))
+			const todo = {
+				title: e.target.value, 
+				text: "test",
+				created_at: Date.now(),
+				due_date: null
+			}
+			setTodos(todos.concat(todo))
 			e.target.value = ""
 		}
 	};
@@ -70,7 +75,7 @@ const TodoList = () => {
 			<ul className="list-group">
 				{todos.map((todo, index) => {
 					return (
-						<Todo index={index} todo={todo} handleClick={() => deleteTodo(index)} />	
+						<Todo index={index} todo={todo} handleDelete={() => deleteTodo(index)} />	
 					)
 				})}
 			</ul>
@@ -78,7 +83,7 @@ const TodoList = () => {
 	);
 }
 
-const Todo = ({index, todo, handleClick}) => (
+const Todo = ({index, todo, handleDelete}) => (
 	<li
 		key={index}
 		className="todo-item list-group-item bg-dark text-info"
@@ -88,9 +93,16 @@ const Todo = ({index, todo, handleClick}) => (
 				<input className="form-check-input me-2 bg-dark border-info" type="checkbox" value="" aria-label="..." />
 				{todo.title}
 			</div>
-			<button className="todo-button btn btn-sm" onClick={handleClick}>
-				<span><i className="fas fa-times"></i></span>
-			</button>
+			<div className="dropdown">
+				<button className="todo-button btn btn-sm" type="button" id={`dropdownMenuButton${index}`} data-bs-toggle="dropdown" aria-expanded="false">
+					<i className="fas fa-ellipsis-v"></i>
+				</button>
+				<ul className="dropdown-menu" aria-labelledby={`dropdownMenuButton${index}`}>
+					<li><div className="dropdown-item">Action</div></li>
+					<li><div className="dropdown-item">Another action</div></li>
+					<li><div className="dropdown-item text-danger" onClick={handleDelete}>Delete</div></li>
+				</ul>
+			</div>
 		</div>
 	</li>
 )
