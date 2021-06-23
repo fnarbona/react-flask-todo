@@ -6,6 +6,11 @@ name = "pypi"
 [packages]
 Flask = "==1.0"
 Flask-SQLAlchemy = "==2.2"
+flask-migrate = "*"
+psycopg2 = "*"
+flask-cors = "*"
+flask-bcrypt = "*"
+flask-jwt-extended = "*"
 
 [dev-packages]
 
@@ -14,3 +19,6 @@ python_version = "3.8"
 
 [scripts]
 start = "python app.py"
+db_init = "flask db init"
+migrate = "flask db migrate"
+upgrade = "flask db upgrade"

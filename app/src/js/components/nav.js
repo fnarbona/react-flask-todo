@@ -53,7 +53,7 @@ export default function MenuAppBar() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-              <span className="text-black me-2">2Snooze</span>
+              <Link className="logo-link me-2" to="/">(2)SNOOZE</Link>
               <Link className="btn btn-dark px-3 mx-2" to="/sign_up">Sign Up</Link>
 				      <Link className="btn btn-dark px-3 mx-2" to="/sign_in">Sign In</Link>
               <Link className="btn btn-dark px-3 mx-2" to="/todos">Todos</Link>

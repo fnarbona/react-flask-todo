@@ -1,4 +1,4 @@
-import React from 'react';
+import {useState, useEffect} from 'react';
 
 const Dashboard = () => {
 	return (
@@ -10,9 +10,9 @@ const Dashboard = () => {
 }
 
 const TodoList = () => {
-	const [todos, setTodos] = React.useState([]);
+	const [todos, setTodos] = useState([]);
 
-	React.useEffect(() => {
+	useEffect(() => {
 		setTodos([
 			{
 				title: 'item 1',
@@ -27,6 +27,19 @@ const TodoList = () => {
 				text: 'this is a todo'
 			}
 		]);
+
+		fetch("http://localhost:4000/get_todos", {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": "Bearer " + localStorage.getItem("token")
+			}
+		})
+		.then(res => res.json())
+		.then(data => {
+			console.log(data)
+		})
+		.catch(err => console.log(err))
 	}, []);
 
 	const addTodo = (e) => {
@@ -57,7 +70,7 @@ const TodoList = () => {
 			<ul className="list-group">
 				{todos.map((todo, index) => {
 					return (
-						<Todo key={index} todo={todo} handleClick={() => deleteTodo(index)} />	
+						<Todo index={index} todo={todo} handleClick={() => deleteTodo(index)} />	
 					)
 				})}
 			</ul>
@@ -65,18 +78,18 @@ const TodoList = () => {
 	);
 }
 
-const Todo = ({todo, key, handleClick}) => (
+const Todo = ({index, todo, handleClick}) => (
 	<li
-		key={key}
+		key={index}
 		className="todo-item list-group-item bg-dark text-info"
 	>
 		<div className="d-flex py-1 justify-content-between align-items-center">
 			<div className="todo-title">
-				<input class="form-check-input me-2 bg-dark border-info" type="checkbox" value="" aria-label="..." />
+				<input className="form-check-input me-2 bg-dark border-info" type="checkbox" value="" aria-label="..." />
 				{todo.title}
 			</div>
 			<button className="todo-button btn btn-sm" onClick={handleClick}>
-				<span><i class="fas fa-times"></i></span>
+				<span><i className="fas fa-times"></i></span>
 			</button>
 		</div>
 	</li>
