@@ -15,10 +15,9 @@ class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(80), unique=True)
     text = db.Column(db.Text, unique=True, nullable=False)
-    description = db.Column(db.String(80), unique=True)
-    due_date =  db.Column(db.DateTime, unique=True, nullable=False)
+    due_date =  db.Column(db.DateTime, unique=True, nullable=True)
     created_at = db.Column(db.DateTime, unique=True, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
         rep = 'Todo(' + self.title + ', created at: ' + self.created_at + ')'

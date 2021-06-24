@@ -2,7 +2,7 @@ from flask import Flask, redirect, url_for, render_template, request, jsonify
 from models import db, User, Todo
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask.ext.bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token
 # Flask
 app = Flask(__name__)
@@ -60,12 +60,12 @@ def signup():
     # check to see if user exists
     user = User.query.filter_by(email=email).first()
 
-    if User:
-        return jsonify({"success": False}), 401
+    if user:
+        return jsonify({"msg": "user already exists!", "success": False}), 401
     if email is None:
-        return jsonify({"success": False}), 401
+        return jsonify({"msg": "no email was provided", "success": False}), 401
     if password is None:
-        return jsonify({"success": False}), 401
+        return jsonify({"msg": "no password was provided", "success": False}), 401
 
     # hash password, create user, commit to db
     pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
@@ -73,17 +73,15 @@ def signup():
     db.session.add(user)
     db.session.commit()
     
-    return jsonify({'success': True}), 200
+    return jsonify({"msg": "user successfully created", "success": True}), 200
 
-@app.route('/get_todos', methods=["GET"])
-@jwt_required
+@app.route('/get_todos')
+@jwt_required()
 def get_todos():
-    user_id = get_jwt_identity(request.json["token"])
-    user = User.query.get(user_id)
-
-    print(user.todos)
-    
-    return jsonify({'success': True}), 200
+    user_id = get_jwt_identity()
+    print("user ID: \n", user_id)
+    todos = User.query.get(user_id).todos
+    return jsonify({"todos": todos, "success": True}), 200
 
 if __name__ == "__main__":
     app.run(port=4000)
