@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, jsonify
+from flask import Flask, json, redirect, url_for, render_template, request, jsonify
 from models import db, User, Todo
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -35,21 +35,21 @@ def signin():
     password = request.json["password"]
 
     if email is None:
-        return jsonify({"success": False}), 401
+        return jsonify({"success": False, "msg": "no email was provided"}), 400
     if password is None:
-        return jsonify({"success": False}), 401
+        return jsonify({"success": False, "msg": "no password was provided"}), 400
 
     # hash password, create user, commit to db
     user = User.query.filter_by(email=email).first()
     if user is None:
-        return jsonify({"success": False}), 401
+        return jsonify({"success": False, "msg": "username or password is incorrect"}), 400
     
     pw_hash = bcrypt.check_password_hash(user.pw_hash, password) # returns True
     if pw_hash:
         token = create_access_token(identity=user.id)
         return jsonify({'success': True, 'token': token}), 200
     else:
-        return jsonify({"success": False}), 401
+        return jsonify({"success": False, "msg": "username or password is incorrect"}), 400
 
 @app.route('/user/signup', methods=["POST"])
 def signup():
@@ -61,11 +61,11 @@ def signup():
     user = User.query.filter_by(email=email).first()
 
     if user:
-        return jsonify({"msg": "user already exists!", "success": False}), 401
+        return jsonify({"success": False, "msg": "user already exists!"}), 400
     if email is None:
-        return jsonify({"msg": "no email was provided", "success": False}), 401
+        return jsonify({"success": False, "msg": "no email was provided"}), 400
     if password is None:
-        return jsonify({"msg": "no password was provided", "success": False}), 401
+        return jsonify({"success": False, "msg": "no password was provided"}), 400
 
     # hash password, create user, commit to db
     pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
@@ -78,10 +78,85 @@ def signup():
 @app.route('/get_todos')
 @jwt_required()
 def get_todos():
-    user_id = get_jwt_identity()
-    print("user ID: \n", user_id)
-    todos = User.query.get(user_id).todos
-    return jsonify({"todos": todos, "success": True}), 200
+    try:
+        user_id = get_jwt_identity()
+    except:
+        return jsonify({"success": False, "msg": "please log in again."}), 401
+    
+    try:
+        todos = list(map(lambda user: user.serialize(), User.query.get(user_id).todos))
+        return jsonify({"success": True, "todos": todos}), 200
+    except:
+        return jsonify({"success": False, "msg": "something went wrong, please try again."})
+
+@app.route('/add_todo', methods=["POST"])
+@jwt_required()
+def add_todo():
+    try:
+        user_id = get_jwt_identity()
+        todo = request.json["todo"]
+    except:
+        return jsonify({"success": False, "msg": "please log in again."}), 401
+    
+    try:
+        if todo:
+            new_todo = Todo(
+                title=todo["title"], 
+                text=todo["text"],
+                created_at=todo["created_at"],
+                due_date=todo["due_date"],
+                complete=todo["complete"],
+                user_id=user_id
+            )
+            db.session.add(new_todo)   
+            db.session.commit()
+            return jsonify({"success": True, "msg": "todos updated successfully"}), 200
+    except:
+        return jsonify({"success": False, "msg": "something went wrong, please try again."})
+
+@app.route('/update_todo', methods=["POST"])
+@jwt_required()
+def update_todo():
+    try:
+        # user_id = get_jwt_identity()
+        todo = request.json["todo"]
+        print(todo)
+    except:
+        return jsonify({"success": False, "msg": "please log in again."}), 401
+    
+    try:
+        todo_id = int(todo["id"])
+        update_todo = Todo.query.get(todo_id)
+        if update_todo:
+            update_todo.title=todo["title"], 
+            update_todo.text=todo["text"],
+            update_todo.due_date=todo["due_date"],
+            update_todo.complete=todo["complete"]
+
+            db.session.commit()
+            return jsonify({"success": True, "msg": "todos updated successfully"}), 200
+    except:
+        return jsonify({"success": False, "msg": "something went wrong, please try again."}), 400
+
+@app.route('/delete_todo', methods=["POST"])
+@jwt_required()
+def delete_todo():
+    try:
+        # user_id = get_jwt_identity()
+        todo_id = request.json["todo_id"]
+        print(todo_id)
+    except:
+        return jsonify({"success": False, "msg": "please log in again."}), 401
+    
+    try:
+        if todo_id:
+            delete_todo = Todo.query.get(int(todo_id))
+            # print(delete_todo.serialize())
+            db.session.delete(delete_todo)
+            db.session.commit()
+            return jsonify({"success": True, "msg": "todos updated successfully"}), 200
+    except:
+        return jsonify({"success": False, "msg": "something went wrong, please try again."}), 400
 
 if __name__ == "__main__":
     app.run(port=4000)
